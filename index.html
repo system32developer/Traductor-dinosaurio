@@ -10,25 +10,30 @@
             text-align: center;
             background-color: #f0f0f0;
         }
+
         h1 {
             color: #2d572c;
         }
+
         .container {
             margin: 20px auto;
             padding: 20px;
-            width: 300px;
+            width: 320px; /* Ajuste del ancho del container */
             background-color: #fff;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
         }
+
         textarea {
-            width: 100%;
+            width: calc(100% - 20px); /* Añade espacio en ambos lados */
             height: 100px;
             margin-bottom: 10px;
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ccc;
+            box-sizing: border-box; /* Hace que el padding se incluya en el ancho total */
         }
+
         button {
             padding: 10px 20px;
             margin: 5px;
@@ -38,12 +43,24 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #1e3b1e;
         }
+
         p {
             font-size: 18px;
             margin-top: 15px;
+        }
+
+        /* Centrar el GIF */
+        .gif-container {
+            margin-top: 20px;
+        }
+
+        .gif-container img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
@@ -57,8 +74,15 @@
         <br>
         <button onclick="traducirADinosaurio()">Traducir a Dinosaurio</button>
         <button onclick="traducirAEspanol()">Traducir a Español</button>
+        <button onclick="copiarTexto()">Copiar Resultado</button>
+
 
         <p id="resultado"></p>
+    </div>
+
+    <!-- GIF de Tenor -->
+    <div class="gif-container">
+        <img src="https://c.tenor.com/Lj_NBDvw_x0AAAAC/tenor.gif" alt="Dinosaurio saludando">
     </div>
 
     <script>
@@ -102,21 +126,55 @@
             const texto = document.getElementById("inputText").value.toLowerCase();
             let traduccion = "";
             for (let letra of texto) {
-                traduccion += alfabetoADinosaurio[letra] ? alfabetoADinosaurio[letra] + " " : letra;
+                traduccion += alfabetoADinosaurio[letra] ? alfabetoADinosaurio[letra] + "" : letra;
             }
             document.getElementById("resultado").innerText = traduccion.trim();
         }
 
         // Función para traducir de dinosaurio a español
         function traducirAEspanol() {
-            const texto = document.getElementById("inputText").value.trim();
+            const texto = document.getElementById("inputText").value;
             let traduccion = "";
-            const palabras = texto.split(" ");
-            for (let palabra of palabras) {
-                traduccion += dinosaurioAEspanol[palabra] ? dinosaurioAEspanol[palabra] : palabra;
+            let i = 0;
+
+            // Crear un array de las claves de dinosaurioAEspanol ordenadas por longitud decreciente
+            const clavesOrdenadas = Object.keys(dinosaurioAEspanol).sort((a, b) => b.length - a.length);
+
+            // Recorrer el texto de dinosaurio
+            while (i < texto.length) {
+                let encontrado = false;
+
+                // Buscar la coincidencia más larga en el diccionario de dinosaurio
+                for (let dino of clavesOrdenadas) {
+                    if (texto.startsWith(dino, i)) {
+                        traduccion += dinosaurioAEspanol[dino]; // Agregar la letra correspondiente
+                        i += dino.length; // Mover el índice según la longitud del dino
+                        encontrado = true;
+                        break;
+                    }
+                }
+
+                // Si no se encontró una coincidencia, agregar el carácter original
+                if (!encontrado) {
+                    traduccion += texto[i];
+                    i++;
+                }
             }
-            document.getElementById("resultado").innerText = traduccion;
+
+            document.getElementById("resultado").innerText = traduccion.trim();
         }
+
+
+        // Función para copiar el texto traducido al portapapeles
+        function copiarTexto() {
+            const resultado = document.getElementById("resultado").innerText;
+            navigator.clipboard.writeText(resultado).then(() => {
+                alert("Texto copiado al portapapeles: " + resultado);
+            }, (err) => {
+                console.error("Error al copiar el texto: ", err);
+            });
+        }
+
     </script>
 
 </body>
