@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Traductor Dinosaurio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f0f0f0;
+            color: #333; /* Color del texto en el tema claro */
+            transition: background-color 0.5s, color 0.5s;
+        }
+
+        body.dark {
+            background-color: #1c1c1c; /* Fondo oscuro */
+            color: white; /* Color del texto en el tema oscuro */
         }
 
         h1 {
@@ -24,6 +32,27 @@
             border-radius: 10px;
         }
 
+        body.dark .container {
+            background-color: #2a2a2a; /* Fondo del contenedor en modo oscuro */
+            color: white; /* Color del texto en el contenedor oscuro */
+            border: 1px solid #444; /* Borde del contenedor en modo oscuro */
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9; /* Fondo claro para el resultado */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            word-wrap: break-word; /* Permite que el texto se ajuste dentro del contenedor */
+            font-size: 14px; /* Tamaño de letra más pequeño */
+        }
+
+        body.dark .result-container {
+            background-color: #3a3a3a; /* Fondo del contenedor de resultados en modo oscuro */
+            border: 1px solid #555; /* Borde del contenedor de resultados en modo oscuro */
+        }
+
         textarea {
             width: calc(100% - 20px); /* Añade espacio en ambos lados */
             height: 100px;
@@ -32,6 +61,12 @@
             border-radius: 5px;
             border: 1px solid #ccc;
             box-sizing: border-box; /* Hace que el padding se incluya en el ancho total */
+        }
+
+        body.dark textarea {
+            background-color: #444; /* Fondo del textarea en modo oscuro */
+            color: white; /* Color del texto en el textarea en modo oscuro */
+            border: 1px solid #666; /* Borde del textarea en modo oscuro */
         }
 
         button {
@@ -48,12 +83,11 @@
             background-color: #1e3b1e;
         }
 
-        p {
-            font-size: 18px;
-            margin-top: 15px;
+        body.dark button {
+            background-color: #555; /* Fondo del botón en modo oscuro */
+            color: white; /* Color del texto del botón en modo oscuro */
         }
 
-        /* Centrar el GIF */
         .gif-container {
             margin-top: 20px;
         }
@@ -61,6 +95,19 @@
         .gif-container img {
             max-width: 100%;
             height: auto;
+        }
+
+        /* Estilo para la notificación */
+        .notification {
+            display: none;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            transition: opacity 0.5s;
         }
     </style>
 </head>
@@ -74,16 +121,22 @@
         <br>
         <button onclick="traducirADinosaurio()">Traducir a Dinosaurio</button>
         <button onclick="traducirAEspanol()">Traducir a Español</button>
-        <button onclick="copiarTexto()">Copiar Resultado</button>
+        <button onclick="copiarTexto()">Copiar</button>
 
-
-        <p id="resultado"></p>
+        <div class="result-container" id="resultado"></div>
     </div>
 
     <!-- GIF de Tenor -->
     <div class="gif-container">
         <img src="https://c.tenor.com/Lj_NBDvw_x0AAAAC/tenor.gif" alt="Dinosaurio saludando">
     </div>
+
+    <!-- Iconos de tema -->
+    <div style="position: absolute; top: 20px; right: 20px;">
+        <i id="themeToggle" class="fas fa-sun" style="cursor: pointer;" onclick="toggleTheme()"></i>
+    </div>
+
+    <div class="notification" id="notification">¡Copiado!</div>
 
     <script>
         // Diccionarios
@@ -126,55 +179,61 @@
             const texto = document.getElementById("inputText").value.toLowerCase();
             let traduccion = "";
             for (let letra of texto) {
-                traduccion += alfabetoADinosaurio[letra] ? alfabetoADinosaurio[letra] + "" : letra;
+                traduccion += alfabetoADinosaurio[letra] ? alfabetoADinosaurio[letra] + " " : letra;
             }
             document.getElementById("resultado").innerText = traduccion.trim();
         }
 
         // Función para traducir de dinosaurio a español
         function traducirAEspanol() {
-            const texto = document.getElementById("inputText").value;
+            const texto = document.getElementById("inputText").value.trim();
             let traduccion = "";
-            let i = 0;
+            let palabra = "";
+            
+            for (let i = 0; i < texto.length; i++) {
+                palabra += texto[i];
 
-            // Crear un array de las claves de dinosaurioAEspanol ordenadas por longitud decreciente
-            const clavesOrdenadas = Object.keys(dinosaurioAEspanol).sort((a, b) => b.length - a.length);
-
-            // Recorrer el texto de dinosaurio
-            while (i < texto.length) {
-                let encontrado = false;
-
-                // Buscar la coincidencia más larga en el diccionario de dinosaurio
-                for (let dino of clavesOrdenadas) {
-                    if (texto.startsWith(dino, i)) {
-                        traduccion += dinosaurioAEspanol[dino]; // Agregar la letra correspondiente
-                        i += dino.length; // Mover el índice según la longitud del dino
-                        encontrado = true;
-                        break;
-                    }
+                // Si la palabra actual es un sonido de dinosaurio conocido, tradúcele
+                if (dinosaurioAEspanol[palabra]) {
+                    traduccion += dinosaurioAEspanol[palabra];
+                    palabra = ""; // Reinicia la palabra
                 }
 
-                // Si no se encontró una coincidencia, agregar el carácter original
-                if (!encontrado) {
-                    traduccion += texto[i];
-                    i++;
+                // Si la palabra tiene una longitud mayor a 5, no puede ser un sonido, reinicia
+                if (palabra.length > 5 && !dinosaurioAEspanol[palabra]) {
+                    traduccion += palabra; // Añade la parte no reconocida
+                    palabra = ""; // Reinicia la palabra
                 }
             }
 
-            document.getElementById("resultado").innerText = traduccion.trim();
+            document.getElementById("resultado").innerText = traduccion;
         }
 
-
-        // Función para copiar el texto traducido al portapapeles
+        // Función para copiar texto
         function copiarTexto() {
             const resultado = document.getElementById("resultado").innerText;
             navigator.clipboard.writeText(resultado).then(() => {
-                alert("Texto copiado al portapapeles: " + resultado);
-            }, (err) => {
-                console.error("Error al copiar el texto: ", err);
+                mostrarNotificacion();
             });
         }
 
+        // Función para mostrar la notificación
+        function mostrarNotificacion() {
+            const notification = document.getElementById("notification");
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+
+        // Función para cambiar de tema
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle("dark");
+            const themeIcon = document.getElementById("themeToggle");
+            themeIcon.classList.toggle("fa-sun");
+            themeIcon.classList.toggle("fa-moon");
+        }
     </script>
 
 </body>
