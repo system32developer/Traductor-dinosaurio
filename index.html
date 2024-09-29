@@ -179,7 +179,7 @@
             const texto = document.getElementById("inputText").value.toLowerCase();
             let traduccion = "";
             for (let letra of texto) {
-                traduccion += alfabetoADinosaurio[letra] ? alfabetoADinosaurio[letra] + " " : letra;
+                traduccion += alfabetoADinosaurio[letra] ? alfabetoADinosaurio[letra] + "" : letra;
             }
             document.getElementById("resultado").innerText = traduccion.trim();
         }
