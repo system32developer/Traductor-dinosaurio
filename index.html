@@ -184,30 +184,39 @@
             document.getElementById("resultado").innerText = traduccion.trim();
         }
 
-        // Función para traducir de dinosaurio a español
-        function traducirAEspanol() {
-            const texto = document.getElementById("inputText").value.trim();
-            let traduccion = "";
-            let palabra = "";
-            
-            for (let i = 0; i < texto.length; i++) {
-                palabra += texto[i];
+		// Función para traducir de dinosaurio a español
+		function traducirAEspanol() {
+			const texto = document.getElementById("inputText").value;
+			let traduccion = "";
+			let i = 0;
 
-                // Si la palabra actual es un sonido de dinosaurio conocido, tradúcele
-                if (dinosaurioAEspanol[palabra]) {
-                    traduccion += dinosaurioAEspanol[palabra];
-                    palabra = ""; // Reinicia la palabra
-                }
+			// Crear un array de las claves de dinosaurioAEspanol ordenadas por longitud decreciente
+			const clavesOrdenadas = Object.keys(dinosaurioAEspanol).sort((a, b) => b.length - a.length);
 
-                // Si la palabra tiene una longitud mayor a 5, no puede ser un sonido, reinicia
-                if (palabra.length > 5 && !dinosaurioAEspanol[palabra]) {
-                    traduccion += palabra; // Añade la parte no reconocida
-                    palabra = ""; // Reinicia la palabra
-                }
-            }
+			// Recorrer el texto de dinosaurio
+			while (i < texto.length) {
+				let encontrado = false;
 
-            document.getElementById("resultado").innerText = traduccion;
-        }
+				// Buscar la coincidencia más larga en el diccionario de dinosaurio
+				for (let dino of clavesOrdenadas) {
+					if (texto.startsWith(dino, i)) {
+						traduccion += dinosaurioAEspanol[dino]; // Agregar la letra correspondiente
+						i += dino.length; // Mover el índice según la longitud del dino
+						encontrado = true;
+						break;
+					}
+				}
+
+				// Si no se encontró una coincidencia, agregar el carácter original
+				if (!encontrado) {
+					traduccion += texto[i];
+					i++;
+				}
+			}
+
+			document.getElementById("resultado").innerText = traduccion.trim();
+		}
+
 
         // Función para copiar texto
         function copiarTexto() {
